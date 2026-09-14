@@ -5,6 +5,9 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build ${{ matrix.os }}
@@ -46,3 +49,25 @@ jobs:
         with:
           name: cppnew-${{ github.ref_name }}-${{ matrix.name }}
           path: cppnew-${{ github.ref_name }}-${{ matrix.name }}*
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+
+      - name: Flatten artifacts
+        run: |
+          mkdir release-files
+          find release -type f -exec cp {} release-files/ \;
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-files/*
+          generate_release_notes: true
