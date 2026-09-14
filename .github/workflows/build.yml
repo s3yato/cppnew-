@@ -16,8 +16,8 @@ jobs:
           - os: macos-14
             name: macos-arm64
 
-          - os: macos-13
-            name: macos-x64
+          - os: windows-2025
+            name: windows-x64
 
           - os: ubuntu-24.04
             name: linux-x64
@@ -32,11 +32,17 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
 
-      - name: Rename binary
+      - name: Rename binary (Unix)
+        if: runner.os != 'Windows'
         run: cp build/cppnew cppnew-${{ github.ref_name }}-${{ matrix.name }}
+
+      - name: Rename binary (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Copy-Item build/Release/cppnew.exe cppnew-${{ github.ref_name }}-${{ matrix.name }}.exe
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: cppnew-${{ github.ref_name }}-${{ matrix.name }}
-          path: cppnew-${{ github.ref_name }}-${{ matrix.name }}
+          path: cppnew-${{ github.ref_name }}-${{ matrix.name }}*
