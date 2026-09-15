@@ -3,7 +3,11 @@
 const path = require("path");
 const { spawn } = require("child_process");
 
-const binary = path.join(__dirname, "..", "cppnew-bin");
+const binary = path.join(
+    __dirname,
+    "..",
+    process.platform === "win32" ? "cppnew-bin.exe" : "cppnew-bin"
+);
 
 const child = spawn(binary, process.argv.slice(2), {
     stdio: "inherit"

@@ -1,8 +1,14 @@
 {
   "name": "cppnew",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "description": "A modern C++ project bootstrapper",
   "bin": {
     "cppnew": "bin/cppnew"
+  },
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

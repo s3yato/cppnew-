@@ -4,3 +4,4 @@ build/
 .DS_Store
 
 npm/cppnew-bin
+npm/cppnew-bin.exe

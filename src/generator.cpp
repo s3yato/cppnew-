@@ -1,23 +1,49 @@
 #include "generator.hpp"
+#include "embedded_templates.hpp"
 
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include <cctype>
 
 namespace fs = std::filesystem;
 
-#ifndef CPPNEW_TEMPLATES_DIR
-#error "CPPNEW_TEMPLATES_DIR is not defined"
-#endif
+static void validate_project_name(const std::string& name) {
+    if (name.empty()) {
+        throw std::runtime_error(
+            "Project name cannot be empty"
+        );
+    }
 
-static std::string read_file(const fs::path& path) {
-    std::ifstream in(path, std::ios::binary);
-    if (!in) throw std::runtime_error("Cannot read " + path.string());
-    std::ostringstream ss;
-    ss << in.rdbuf();
-    return ss.str();
+    if (!std::isalpha(static_cast<unsigned char>(name[0]))) {
+        throw std::runtime_error(
+            "Project name must start with a letter"
+        );
+    }
+
+    for (char c : name) {
+        if (!std::isalnum(static_cast<unsigned char>(c)) &&
+            c != '-' &&
+            c != '_') {
+            throw std::runtime_error(
+                "Project name may contain only letters, digits, '-' and '_'"
+            );
+        }
+    }
+}
+
+std::string_view cppnew::get_template(std::string_view path) {
+    for (std::size_t i = 0; i < cppnew::template_count; ++i) {
+        if (cppnew::templates[i].path == path) {
+            return cppnew::templates[i].content;
+        }
+    }
+
+    throw std::runtime_error(
+        "Template not found: " + std::string(path)
+    );
 }
 
 static void write_file(const fs::path& path, const std::string& content) {
@@ -27,27 +53,67 @@ static void write_file(const fs::path& path, const std::string& content) {
     out << content;
 }
 
-static std::string render(std::string text, const std::string& name) {
-    const std::string placeholder = "{{NAME}}";
+static std::string render(
+    std::string text,
+    const std::string& name
+) {
+    const std::string name_placeholder = "{{NAME}}";
+
     size_t pos;
-    while ((pos = text.find(placeholder)) != std::string::npos) {
-        text.replace(pos, placeholder.size(), name);
+    while ((pos = text.find(name_placeholder)) != std::string::npos) {
+        text.replace(pos, name_placeholder.size(), name);
     }
+
+    std::string namespace_name = name;
+
+    for (char& c : namespace_name) {
+        if (c == '-') {
+            c = '_';
+        }
+    }
+
+    const std::string namespace_placeholder = "{{NAMESPACE}}";
+
+    while ((pos = text.find(namespace_placeholder)) != std::string::npos) {
+        text.replace(
+            pos,
+            namespace_placeholder.size(),
+            namespace_name
+        );
+    }
+
     return text;
 }
 
 static void apply_addon(const fs::path& target,
-    const fs::path& addon,
+    const std::string& addon_path,
     const std::string& name)
 {
-if (!fs::exists(addon)) return;  
-if (!fs::exists(target)) return; 
+if (!fs::exists(target)) return;
 
-std::string existing = read_file(target);
-std::string addition = render(read_file(addon), name);
+std::string existing;
+
+{
+std::ifstream in(target, std::ios::binary);
+if (!in) {
+throw std::runtime_error(
+"Cannot read " + target.string()
+);
+}
+
+std::ostringstream ss;
+ss << in.rdbuf();
+existing = ss.str();
+}
+
+std::string addition = render(
+std::string(cppnew::get_template(addon_path)),
+name
+);
 
 write_file(target, existing + addition);
 }
+
 
 static std::string strip_tmpl(const std::string& s) {
     const std::string suffix = ".tmpl";
@@ -58,51 +124,62 @@ static std::string strip_tmpl(const std::string& s) {
     return s;
 }
 
-static void copy_template_dir(const fs::path& src_dir,
-                              const fs::path& dst_dir,
-                              const std::string& name)
+static void copy_embedded_templates(const std::string& prefix,
+    const fs::path& dst_dir,
+    const std::string& name)
 {
-    for (const auto& entry : fs::recursive_directory_iterator(src_dir)) {
-        if (!entry.is_regular_file()) continue;
+    const std::string full_prefix = prefix + "/";
 
-        fs::path rel = fs::relative(entry.path(), src_dir);
-        std::string rel_str = strip_tmpl(rel.string());
-        rel_str = render(rel_str, name);
+    for (std::size_t i = 0; i < cppnew::template_count; ++i) {
+        const auto& tmpl = cppnew::templates[i];
 
-        fs::path dst_path = dst_dir / rel_str;
-        std::string content = render(read_file(entry.path()), name);
+        if (!tmpl.path.starts_with(full_prefix)) {
+            continue;
+        }
+
+        std::string rel = std::string(
+            tmpl.path.substr(full_prefix.size())
+        );
+
+        rel = strip_tmpl(rel);
+        rel = render(rel, name);
+
+        fs::path dst_path = dst_dir / rel;
+
+        std::string content = render(
+            std::string(tmpl.content),
+            name
+        );
+
         write_file(dst_path, content);
     }
 }
 
 void generate_project(const Options& opts) {
+    validate_project_name(opts.name);
     fs::path root = opts.name;
 
     if (fs::exists(root)) {
-        throw std::runtime_error("Directory already exists: " + root.string());
-    }
-
-    fs::path templates_root = CPPNEW_TEMPLATES_DIR;
-    fs::path template_dir = templates_root / (opts.is_lib ? "lib" : "app");
-
-    if (!fs::exists(template_dir)) {
-        throw std::runtime_error("Template not found: " + template_dir.string());
+        throw std::runtime_error(
+            "Directory already exists: " + root.string()
+        );
     }
 
     fs::create_directories(root);
 
-    copy_template_dir(template_dir, root, opts.name);
-    copy_template_dir(templates_root / "common", root, opts.name);
+    const std::string prefix = opts.is_lib ? "lib" : "app";
 
-    std::cerr << "[DEBUG] with_tests = " << opts.with_tests << "\n";
+    copy_embedded_templates(prefix, root, opts.name);
+    copy_embedded_templates("common", root, opts.name);
 
     if (opts.with_tests) {
-        fs::path addon = templates_root / "tests" / "addons" / "CMakeLists.txt.addon";
-        std::cerr << "[DEBUG] addon path    = " << addon << "\n";
-        std::cerr << "[DEBUG] addon exists  = " << fs::exists(addon) << "\n";
+        copy_embedded_templates("tests/files", root, opts.name);
 
-        copy_template_dir(templates_root / "tests" / "files", root, opts.name);
-        apply_addon(root / "CMakeLists.txt", addon, opts.name);
+        apply_addon(
+            root / "CMakeLists.txt",
+            "tests/addons/CMakeLists.txt.addon",
+            opts.name
+        );
     }
 
     std::cout << "Created project: " << opts.name << "\n";
