@@ -3,7 +3,7 @@ const path = require("path");
 const https = require("https");
 const { execSync } = require("child_process");
 
-const VERSION = "v0.1.3";
+const VERSION = "v0.1.4";
 const REPO = "s3yato/cppnew-";
 
 const platform = process.platform;
