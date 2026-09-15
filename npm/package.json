@@ -1,6 +1,6 @@
 {
   "name": "cppnew",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "A modern C++ project bootstrapper",
   "bin": {
     "cppnew": "bin/cppnew"

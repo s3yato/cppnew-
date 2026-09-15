@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 3.20)
-project(cppnew VERSION 0.1.0 LANGUAGES CXX)
+project(cppnew LANGUAGES CXX)
+
+file(READ "${CMAKE_SOURCE_DIR}/npm/package.json" PACKAGE_JSON)
+
+string(
+    JSON CPPNEW_VERSION
+    GET "${PACKAGE_JSON}"
+    version
+)
+
+project(cppnew VERSION ${CPPNEW_VERSION} LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -49,6 +59,9 @@ add_executable(cppnew
 )
 
 target_include_directories(cppnew PRIVATE src)
+target_compile_definitions(cppnew PRIVATE
+    CPPNEW_VERSION="${PROJECT_VERSION}"
+)
 target_link_libraries(cppnew PRIVATE CLI11::CLI11)
 
 # --- Установка ---

@@ -5,7 +5,7 @@
 
 int main(int argc, char** argv) {
     CLI::App app{"cargo new for C++"};
-    app.set_version_flag("--version", "cppnew 0.1.0");
+    app.set_version_flag("--version", "cppnew " CPPNEW_VERSION);
 
     auto* new_cmd = app.add_subcommand("new", "Create a new project");
     std::string new_name;

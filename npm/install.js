@@ -1,9 +1,9 @@
 const fs = require("fs");
 const path = require("path");
 const https = require("https");
-const { execSync } = require("child_process");
+const packageJson = require("./package.json");
 
-const VERSION = "v0.1.5";
+const VERSION = `v${packageJson.version}`;
 const REPO = "s3yato/cppnew-";
 
 const platform = process.platform;
