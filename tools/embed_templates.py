@@ -23,11 +23,11 @@ def main():
         list(templates_dir.rglob("*.addon"))
     ):
         relative_path = path.relative_to(templates_dir).as_posix()
-        content = path.read_text()
+        content = path.read_text(encoding="utf-8")
 
         templates.append((relative_path, content))
 
-    with output_file.open("w") as out:
+    with output_file.open("w", encoding="utf-8") as out:
         out.write('#include "embedded_templates.hpp"\n')
         out.write("#include <string_view>\n")
         out.write("\n")
