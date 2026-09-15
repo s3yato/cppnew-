@@ -9,16 +9,16 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/s3yato/cppnew">GitHub</a>
+  <a href="https://github.com/s3yato/cppnew-">GitHub</a>
   ·
-  <a href="https://github.com/s3yato/cppnew/issues">Issues</a>
+  <a href="https://github.com/s3yato/cppnew-/issues">Issues</a>
   ·
-  <a href="https://github.com/s3yato/cppnew/releases">Releases</a>
+  <a href="https://github.com/s3yato/cppnew-/releases">Releases</a>
 </p>
 
 <p align="center">
 
-![C++](https://img.shields.io/badge/C%2B%2B-17%2B-blue)
+![C++](https://img.shields.io/badge/C%2B%2B-20%2B-blue)
 ![CMake](https://img.shields.io/badge/CMake-3.20%2B-green)
 ![License](https://img.shields.io/badge/license-MIT-black)
 
@@ -47,13 +47,67 @@ That's it.
 
 ---
 
+## Installation
+
+### npm
+
+The easiest way to install `cppnew` is through npm:
+
+```bash
+npm install -g cppnew
+```
+
+Verify the installation:
+
+```bash
+cppnew --version
+```
+
+Example:
+
+```text
+cppnew 0.1.6
+```
+
+Prebuilt binaries are currently distributed for:
+
+* macOS ARM64
+* Linux x64
+* Windows x64
+
+### From source
+
+Clone the repository:
+
+```bash
+git clone https://github.com/s3yato/cppnew-.git
+cd cppnew-
+```
+
+Configure and build:
+
+```bash
+cmake -S . -B build
+cmake --build build
+```
+
+The resulting binary will be located in:
+
+```text
+build/cppnew
+```
+
+---
+
 ## Quick Start
 
-### Create an application
+Create a new application:
 
 ```bash
 cppnew new my-project
 ```
+
+This generates:
 
 ```text
 my-project/
@@ -73,7 +127,7 @@ cmake -S . -B build
 cmake --build build
 ```
 
-Run:
+Run it:
 
 ```bash
 ./build/my-project
@@ -81,11 +135,15 @@ Run:
 
 ---
 
-## Create a library
+## Create a Library
+
+Create a C++ library:
 
 ```bash
 cppnew new my-library --lib
 ```
+
+Generated structure:
 
 ```text
 my-library/
@@ -99,100 +157,80 @@ my-library/
     └── my-library.cpp
 ```
 
+The generated library uses a standard CMake structure with public headers separated from implementation files.
+
 ---
 
-## Add tests
+## Add Tests
 
-Need a project with GoogleTest?
+Create a project with GoogleTest:
 
 ```bash
 cppnew new my-project --tests
 ```
 
-Then:
+Then build and run the tests:
 
 ```bash
 cd my-project
 
 cmake -S . -B build
 cmake --build build
-ctest --test-dir build
+ctest --test-dir build --output-on-failure
 ```
+
+Example output:
 
 ```text
 100% tests passed
 ```
 
----
-
-## Installation
-
-### npm
-
-```bash
-npm install -g cppnew
-```
-
-Verify the installation:
-
-```bash
-cppnew --version
-```
-
-### From source
-
-Clone the repository:
-
-```bash
-git clone https://github.com/s3yato/cppnew.git
-cd cppnew
-```
-
-Configure and build:
-
-```bash
-cmake -S . -B build
-cmake --build build
-```
-
-Install:
-
-```bash
-sudo cmake --install build
-```
+GoogleTest is automatically configured through CMake.
 
 ---
 
 ## Commands
 
-### `cppnew new`
-
-Create a new C++ application:
+### Create an application
 
 ```bash
 cppnew new <name>
 ```
 
-### `cppnew new --lib`
+Example:
 
-Create a C++ library:
+```bash
+cppnew new robot-simulator
+```
+
+### Create a library
 
 ```bash
 cppnew new <name> --lib
 ```
 
-### `cppnew new --tests`
+Example:
 
-Create a project with GoogleTest:
+```bash
+cppnew new robotics-core --lib
+```
+
+### Create a project with tests
 
 ```bash
 cppnew new <name> --tests
 ```
 
-Options can be combined:
+Example:
 
 ```bash
 cppnew new robot-simulator --tests
+```
+
+Options can be combined:
+
+```bash
+cppnew new robotics-core --lib --tests
 ```
 
 ### Help
@@ -209,7 +247,7 @@ cppnew --version
 
 ---
 
-## What does cppnew generate?
+## What Does cppnew Generate?
 
 `cppnew` is intentionally simple.
 
@@ -240,7 +278,7 @@ my-library/
     └── my-library.cpp
 ```
 
-### With tests
+### Application with Tests
 
 ```text
 my-project/
@@ -255,11 +293,11 @@ my-project/
 
 ---
 
-## Design goals
+## Design Goals
 
 ### Simple
 
-One command should be enough to start.
+One command should be enough to start a project.
 
 ### Predictable
 
@@ -267,11 +305,11 @@ Generated projects should be understandable by any C++ developer.
 
 ### Modern
 
-CMake, testing and a clean project structure from the beginning.
+Use modern C++, CMake and testing from the beginning.
 
 ### Lightweight
 
-No large framework. No configuration required.
+No large framework. No complicated configuration.
 
 ### Extensible
 
@@ -279,7 +317,7 @@ The template system is designed to support additional project types and generato
 
 ---
 
-## Project architecture
+## Project Architecture
 
 `cppnew` itself is written in modern C++.
 
@@ -302,7 +340,9 @@ cppnew
     └── common
 ```
 
-The goal is to keep the CLI, generation logic and templates separated so new project types can be added without rewriting the core.
+The CLI, generation logic and templates are separated so new project types can be added without rewriting the core.
+
+Templates are embedded into the distributed binary, so the installed `cppnew` executable does not depend on a separate templates directory.
 
 ---
 
@@ -316,8 +356,9 @@ The goal is to keep the CLI, generation logic and templates separated so new pro
 * [x] CMake project generation
 * [x] CLI help
 * [x] Version command
-* [ ] npm distribution
-* [ ] GitHub Release
+* [x] npm distribution
+* [x] GitHub Releases
+* [x] Cross-platform binary distribution
 
 ### Future
 
@@ -326,7 +367,8 @@ The goal is to keep the CLI, generation logic and templates separated so new pro
 * [ ] Project configuration
 * [ ] Package manager integration
 * [ ] More testing presets
-* [ ] Cross-platform binary distribution
+* [ ] Improved generator system
+* [ ] Additional platform support
 
 ---
 
@@ -336,10 +378,16 @@ Contributions are welcome.
 
 If you have an idea, find a bug, or want to improve a template, open an issue or submit a pull request.
 
-```bash
-git clone https://github.com/YOUR_USERNAME/cppnew.git
-cd cppnew
+Clone the repository:
 
+```bash
+git clone https://github.com/s3yato/cppnew-.git
+cd cppnew-
+```
+
+Build:
+
+```bash
 cmake -S . -B build
 cmake --build build
 ```
@@ -348,7 +396,7 @@ cmake --build build
 
 ## License
 
-MIT © 2026 [YOUR_USERNAME](https://github.com/YOUR_USERNAME)
+MIT © 2026 Egor Sukharnikov
 
 ---
 
