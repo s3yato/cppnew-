@@ -3,7 +3,7 @@ const path = require("path");
 const https = require("https");
 const { execSync } = require("child_process");
 
-const VERSION = "v0.1.4";
+const VERSION = "v0.1.5";
 const REPO = "s3yato/cppnew-";
 
 const platform = process.platform;
@@ -38,7 +38,10 @@ const filename =
 const url =
     `https://github.com/${REPO}/releases/download/${VERSION}/${filename}`;
 
-const output = path.join(__dirname, "cppnew-bin");
+const output = path.join(
+    __dirname,
+    platform === "win32" ? "cppnew-bin.exe" : "cppnew-bin"
+);
 
 console.log(`cppnew: downloading ${filename}...`);
 
